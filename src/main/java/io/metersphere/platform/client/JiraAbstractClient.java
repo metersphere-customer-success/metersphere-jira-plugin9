@@ -137,9 +137,9 @@ public abstract class JiraAbstractClient extends BaseClient {
     }
 
 
-    public List getDemands(String projectKey, String issueType, int startAt, int maxResults) {
+    public List getDemands(String projectKey, String issueType, int startAt, int maxResults,String componentId) {
         String jql = getBaseUrl() + "/search?jql=project=" + projectKey + "+AND+issuetype=" + issueType
-                + "&maxResults=" + maxResults + "&startAt=" + startAt + "&fields=summary,issuetype";
+                +"+And+component="+componentId+ "&maxResults=" + maxResults + "&startAt=" + startAt + "&fields=summary,issuetype";
         ResponseEntity<String> responseEntity = restTemplate.exchange(jql,
                 HttpMethod.GET, getAuthHttpEntity(), String.class);
         Map jsonObject = JSON.parseMap(responseEntity.getBody());
@@ -328,18 +328,18 @@ public abstract class JiraAbstractClient extends BaseClient {
         AUTH_TYPE = config.getAuthType();
     }
 
-    public JiraIssueListResponse getProjectIssues(Integer startAt, Integer maxResults, String projectKey, String issueType) {
-        return getProjectIssues(startAt, maxResults, projectKey, issueType, null);
+    public JiraIssueListResponse getProjectIssues(Integer startAt, Integer maxResults, String projectKey, String issueType,String componentId) {
+        return getProjectIssues(startAt, maxResults, projectKey, issueType ,componentId,null);
     }
 
-    public JiraIssueListResponse getProjectIssues(Integer startAt, Integer maxResults, String projectKey, String issueType, String fields) {
+    public JiraIssueListResponse getProjectIssues(Integer startAt, Integer maxResults, String projectKey, String issueType, String componentId,String fields) {
         ResponseEntity<String> responseEntity;
-        String url = getBaseUrl() + "/search?startAt={1}&maxResults={2}&jql=project={3}+AND+issuetype={4}";
+        String url = getBaseUrl() + "/search?startAt={1}&maxResults={2}&jql=project={3}+AND+issuetype={4}+AND+component={5}";
         if (StringUtils.isNotBlank(fields)) {
             url = url + "&fields=" + fields;
         }
         responseEntity = restTemplate.exchange(url,
-                HttpMethod.GET, getAuthHttpEntity(), String.class, startAt, maxResults, projectKey, issueType);
+                HttpMethod.GET, getAuthHttpEntity(), String.class, startAt, maxResults, projectKey, issueType,componentId);
         return  (JiraIssueListResponse)getResultForObject(JiraIssueListResponse.class, responseEntity);
     }
 
@@ -356,8 +356,8 @@ public abstract class JiraAbstractClient extends BaseClient {
         });
     }
 
-    public JiraIssueListResponse getProjectIssuesAttachment(Integer startAt, Integer maxResults, String projectKey, String issueType) {
-        return getProjectIssues(startAt, maxResults, projectKey, issueType, "attachment");
+    public JiraIssueListResponse getProjectIssuesAttachment(Integer startAt, Integer maxResults, String projectKey, String issueType,String componentId) {
+        return getProjectIssues(startAt, maxResults, projectKey, issueType, "attachment",componentId);
 
     }
     public void setTransitions(String jiraKey, JiraTransitionsResponse.Transitions transitions) {
@@ -393,4 +393,17 @@ public abstract class JiraAbstractClient extends BaseClient {
         ResponseEntity<String> response = restTemplate.exchange(getBaseUrl() + "/project/"+jiraKey+"/statuses", HttpMethod.GET, getAuthHttpEntity(), String.class);
         return (List<JiraStatusResponse>)getResultForList(JiraStatusResponse.class, response);
     }
+
+    public  JiraComponentProject getComponent(String componentId) {
+        String url = getUrl("/component/" + componentId);
+        ResponseEntity<String> response = null;
+        try {
+            response = restTemplate.exchange(url, HttpMethod.GET, getAuthHttpEntity(), String.class);
+        } catch (Exception e) {
+            LogUtil.error(e.getMessage(), e);
+            MSPluginException.throwException(e.getMessage());
+        }
+        return (JiraComponentProject) getResultForObject(JiraComponentProject.class, response);
+
+    };
 }

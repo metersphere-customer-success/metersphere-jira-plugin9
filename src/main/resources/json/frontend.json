@@ -104,6 +104,17 @@
         "instructionsIcon": "/static/jira-key.png"
       },
       {
+        "name": "componentId",
+        "type": "input",
+        "defaultValue": "",
+        "required": true,
+        "i18n": true,
+        "label": "JIRA项目的模块id",
+        "withProjectCheck": true,
+        "instructionsIcon": "/static/component-id.png"
+      },
+
+      {
         "name": "jiraIssueTypeId",
         "type": "select",
         "defaultValue": "",

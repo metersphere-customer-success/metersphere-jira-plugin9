@@ -382,7 +382,7 @@ public class JiraPlatform extends AbstractPlatform {
         int maxResults = 50, startAt = 0;
         List demands;
         do {
-            demands = jiraClientV2.getDemands(projectConfig.getJiraKey(), projectConfig.getJiraStoryTypeId(), startAt, maxResults);
+            demands = jiraClientV2.getDemands(projectConfig.getJiraKey(), projectConfig.getJiraStoryTypeId(), startAt, maxResults,projectConfig.getComponentId());
             for (int i = 0; i < demands.size(); i++) {
                 Map o = (Map) demands.get(i);
                 String issueKey = o.get("key").toString();
@@ -747,6 +747,12 @@ public class JiraPlatform extends AbstractPlatform {
             JiraIssueProject project = jiraClientV2.getProject(projectConfig.getJiraKey());
             if (project != null && StringUtils.isBlank(project.getId())) {
                 MSPluginException.throwException("项目不存在");
+            }
+            //验证模块
+            JiraComponentProject componentProject=jiraClientV2.getComponent(projectConfig.getComponentId());
+            if(componentProject==null || !StringUtils.equals(Integer.toString(componentProject.getProjectId()),project.getId())) {
+                MSPluginException.throwException("模块不存在");
+
             }
         } catch (Exception e) {
             LogUtil.error(e);
@@ -1322,7 +1328,7 @@ public class JiraPlatform extends AbstractPlatform {
             validateIssueType();
             validateProjectKey(jiraKey);
 
-            JiraIssueListResponse result = jiraClientV2.getProjectIssues(startAt, maxResults, jiraKey, projectConfig.getJiraIssueTypeId());
+            JiraIssueListResponse result = jiraClientV2.getProjectIssues(startAt, maxResults, jiraKey, projectConfig.getJiraIssueTypeId(),projectConfig.getComponentId());
             jiraIssues = result.getIssues();
 
             currentSize = jiraIssues.size();
@@ -1342,7 +1348,7 @@ public class JiraPlatform extends AbstractPlatform {
                     // 如果不包含附件信息，则查询下附件
                     try {
                         JiraIssueListResponse response = jiraClientV2.getProjectIssuesAttachment(startAt, maxResults,
-                                jiraKey, projectConfig.getJiraIssueTypeId());
+                                jiraKey, projectConfig.getJiraIssueTypeId(), projectConfig.getComponentId());
                         List<JiraIssue> jiraIssuesWithAttachment = response.getIssues();
                         attachmentMap = jiraIssuesWithAttachment.stream()
                                 .collect(Collectors.toMap(JiraIssue::getKey,

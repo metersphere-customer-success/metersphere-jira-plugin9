@@ -10,4 +10,5 @@ public class JiraProjectConfig {
     private String jiraStoryTypeId;
     private boolean thirdPartTemplate;
     private String jiraKey;
+    private String componentId;
 }
